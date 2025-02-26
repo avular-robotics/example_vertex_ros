@@ -1,0 +1,57 @@
+/// For format details, see https://aka.ms/devcontainer.json. For config options, see the
+// README at: https://github.com/devcontainers/templates/tree/main/src/cpp
+{
+    "name": "ROS Dev Container [Drone]",
+    "privileged": true,
+    "remoteUser": "user",
+    "build": {
+        "dockerfile": "../../docker/ros.Dockerfile",
+        "context": "../..",
+        "args": {
+            "USERNAME": "user"
+        }
+    },
+    "workspaceFolder": "/home/user/ws",
+    "workspaceMount": "source=${localWorkspaceFolder}/ros,target=/home/user/ws,type=bind",
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "ms-vscode.cmake-tools",
+                "twxs.cmake",
+                "ms-vscode.cpptools-extension-pack",
+                "bierner.markdown-mermaid",
+                "YouneselBarnoussi.vscode-behave-test-adapter",
+                "charliermarsh.ruff",
+                "alexkrechik.cucumberautocomplete",
+                "github.vscode-github-actions",
+                "eamodio.gitlens",
+                "yzhang.markdown-all-in-one",
+                "mhutchie.git-graph",
+                "xaver.clang-format"
+            ],
+            "settings": {
+                "terminal.integrated.defaultProfile.linux": "bash",
+                "cmake.ignoreCMakeListsMissing": true,
+                "editor.formatOnSave": true,
+                "clang-format.executable": "clang-format-15"
+            }
+        }
+    },
+    "mounts": [
+        "source=/data/app/avular/dds,target=/data/app/avular/dds,type=bind,consistency=cached"
+    ],
+    "runArgs": [
+        "--net=host",
+        "--pid=host",
+        "--ipc=host",
+        "-e",
+        "DISPLAY=${localEnv:DISPLAY}"
+    ],
+    "containerEnv": {
+        "ROS_DOMAIN_ID": "${localEnv:ROS_DOMAIN_ID}",
+        "ROS2CLI_DDS_WRAPPER_DISABLE": "1",
+        "RMW_IMPLEMENTATION": "rmw_cyclonedds_cpp",
+        "CYCLONEDDS_URI": "/data/app/avular/dds/cyclone_loopback.xml"
+    },
+    "postCreateCommand": "sudo rosdep install --from-paths src --ignore-src -y && sudo chown -R $(whoami) /home/user/ws/"
+}

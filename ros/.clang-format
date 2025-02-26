@@ -1,0 +1,48 @@
+﻿---
+BasedOnStyle: Google
+AlignEscapedNewlinesLeft: 'true'
+AlignTrailingComments: 'true'
+AlignConsecutiveMacros: 'true'
+AllowAllParametersOfDeclarationOnNextLine: 'false'
+AllowShortBlocksOnASingleLine: 'false'
+AllowShortFunctionsOnASingleLine: 'Inline'
+AllowShortIfStatementsOnASingleLine: 'false'
+AllowShortLoopsOnASingleLine: 'false'
+AlwaysBreakBeforeMultilineStrings: 'false'
+BinPackParameters: 'false'
+BreakBeforeBinaryOperators: 'false'
+BreakBeforeBraces: Allman
+BreakBeforeTernaryOperators: 'false'
+BreakConstructorInitializersBeforeComma: 'false'
+ColumnLimit: '100'
+ConstructorInitializerAllOnOneLineOrOnePerLine: 'true'
+ContinuationIndentWidth: '4'
+Cpp11BracedListStyle: 'true'
+DerivePointerAlignment: 'false'
+DisableFormat: 'false'
+ExperimentalAutoDetectBinPacking: 'false'
+IndentCaseLabels: 'false'
+IndentWidth: '4'
+IndentWrappedFunctionNames: 'true'
+KeepEmptyLinesAtTheStartOfBlocks: 'false'
+MaxEmptyLinesToKeep: '2'
+NamespaceIndentation: None
+PointerAlignment: Right
+SpaceBeforeAssignmentOperators: 'true'
+SpaceBeforeParens: Never
+SpaceInEmptyParentheses: 'false'
+SpacesBeforeTrailingComments: '1'
+SpacesInAngles: 'false'
+SpacesInCStyleCastParentheses: 'false'
+SpacesInContainerLiterals: 'false'
+SpacesInParentheses: 'false'
+Standard: Latest
+TabWidth: '4'
+UseTab: Never
+AlignConsecutiveDeclarations: 'true'
+AlignConsecutiveAssignments : 'true'
+AccessModifierOffset: '-4'
+SortIncludes: 'false'
+...
+
+# " // clang-format off " or " /* clang-format off */ " and " // clang-format on " or " /* clang-format on */ " can be used to disable formatting in a part of code

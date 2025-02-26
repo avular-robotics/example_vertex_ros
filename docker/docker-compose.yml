@@ -1,0 +1,55 @@
+x-common-variables: &common-variables
+  CREOS_HOST: 172.32.0.1
+  CREOS_PORT: 7200
+
+services:
+  sdk-example-container:
+    container_name: sdk-example-container
+    build:
+      context: ../
+      dockerfile: docker/sdk.Dockerfile
+    pull_policy: build
+    # Make sure the container can access the host's network
+    privileged: true
+    # Start the container on boot, unless the container is stopped
+    restart: unless-stopped
+    volumes:
+      # Mount a workspace to the container to allow the user to make persistent changes
+      - type: bind
+        source: ../sdk
+        target: /home/user/ws
+    command: sleep infinity
+    environment:
+      <<: *common-variables
+    networks:
+      - sdk_examples_network
+
+  ros-example-container:
+    container_name: ros-example-container
+    build:
+      context: ../
+      dockerfile: docker/ros.Dockerfile
+      args:
+        USERNAME: user
+    pull_policy: build
+    # Make sure the container can access the host's network
+    privileged: true
+    # Start the container on boot, unless the container is stopped
+    restart: unless-stopped
+    volumes:
+      # Mount a workspace to the container to allow the user to make persistent changes
+      - type: bind
+        source: ../ros
+        target: /home/user/ws
+    command: /bin/bash -c "ros2 launch creos_sdk_ros creos-ros-wrapper.launch.yaml host:=$$CREOS_HOST"
+    environment:
+      <<: *common-variables
+    networks:
+      - sdk_examples_network
+
+networks:
+  sdk_examples_network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.32.0.0/16
