@@ -21,7 +21,7 @@ Based on the spin rate of the example, the setpoints are calculated and a new se
 
 The main function sets up all the classes and runs the main loop. It will take care of the CLI arguments and will subscribe to the correct API's and register the correct callbacks.
 
-The execution of the example can be toggled using the C button (SF switch when using Jeti Controller). Once the execution is active, the FlightController `Run` function will be called. This function will check if the drone is in the correct state and automatically takeoff. This will only happen if the drone is `armed` and is in `user` control mode. The takeoff will happen after x seconds, where x is the value of the `takeoff_delay` variable. Once the drone is in the air, the `CircleReferences` class will be called to calculate the setpoints for the drone to fly in a circle.
+The execution of the example can be toggled using the D button (SF switch when using Jeti Controller). Once the execution is active, the FlightController `Run` function will be called. This function will check if the drone is in the correct state and automatically takeoff. This will only happen if the drone is `armed` and is in `user` control mode. The takeoff will happen after x seconds, where x is the value of the `takeoff_delay` variable. Once the drone is in the air, the `CircleReferences` class will be called to calculate the setpoints for the drone to fly in a circle.
 
 If at any point the execution is toggled off, the drone will stay still in the air. If at any point you want to take control of the drone, you can do so by switching the drone into `manual` mode. The drone will then stop listening to the setpoints and will only listen to the controller input.
 

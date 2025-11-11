@@ -12,7 +12,7 @@
 
 #include <creos/messages/control_source.hpp>
 #include <creos/messages/generic.hpp>
-#include <creos/messages/pose.hpp>
+#include <creos/messages/odometry.hpp>
 #include <creos/messages/state.hpp>
 
 #include <mutex>
@@ -38,16 +38,16 @@ public:
     bool IsLanding() override;
     bool IsInUserControlMode() override;
 
-    std::function<void(const creos_messages::PoseWithCovarianceStamped &)> GetGlobalPoseCallback();
+    std::function<void(const creos_messages::Odometry &)>      GetOdometryCallback();
     std::function<void(const creos_messages::ControlSource &)> GetControlSourceCallback();
     std::function<void(const creos_messages::State &)>         GetStateCallback();
 
 private:
     const bool kLog_state_change_;
 
-    std::mutex                                global_pose_mutex_;
-    creos_messages::PoseWithCovarianceStamped latest_global_pose_;
-    void globalPoseCallback(const creos_messages::PoseWithCovarianceStamped &msg);
+    std::mutex               odometry_mutex_;
+    creos_messages::Odometry latest_odometry_;
+    void                     odometryCallback(const creos_messages::Odometry &msg);
 
     std::mutex                    control_source_mutex_;
     creos_messages::ControlSource latest_control_source_;

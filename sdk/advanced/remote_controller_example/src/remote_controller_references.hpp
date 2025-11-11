@@ -36,7 +36,7 @@ public:
         const float                         latest_heading,
         const float                         time_delta_s,
         const creos::RobotClock::time_point timestamp,
-        const std::string                   frame_id = "NED_odom");
+        const std::string                   frame_id = "odom");
 
     /**
      * @brief Reset the RemoteControllerReferences

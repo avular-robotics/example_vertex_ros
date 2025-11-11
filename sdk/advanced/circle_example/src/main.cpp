@@ -15,7 +15,7 @@
 #include <creos/client.hpp>
 #include <creos/messages/controller_state.hpp>
 #include <creos/messages/state_reference.hpp>
-#include <creos/messages/pose.hpp>
+#include <creos/messages/odometry.hpp>
 
 #include <common/logging.hpp>
 #include <common/drone_state.hpp>
@@ -77,7 +77,7 @@ int main(int argc, char **argv)
 
     // Setup DroneState
     std::shared_ptr<DroneState> drone_state = std::make_shared<DroneState>();
-    client.sensors()->subscribeToPose(drone_state->GetGlobalPoseCallback());
+    client.sensors()->subscribeToOdometry(drone_state->GetOdometryCallback());
     client.setpoint_control()->subscribeToCurrentControlSource(
         drone_state->GetControlSourceCallback());
     client.diagnostics()->subscribeToState(drone_state->GetStateCallback());

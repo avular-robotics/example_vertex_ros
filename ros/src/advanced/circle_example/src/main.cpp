@@ -12,7 +12,7 @@
 #include <rclcpp/rclcpp.hpp>
 
 #include <sensor_msgs/msg/joy.hpp>
-#include <geometry_msgs/msg/pose_with_covariance_stamped.hpp>
+#include <nav_msgs/msg/odometry.hpp>
 #include <creos_sdk_msgs/msg/state.hpp>
 #include <creos_sdk_msgs/msg/state_reference.hpp>
 #include <creos_sdk_msgs/msg/control_source.hpp>
@@ -62,9 +62,9 @@ public:
                                    std::bind(&CircleNode::Run, this));
 
         // Setup DroneState
-        drone_state_     = std::make_shared<DroneState>();
-        global_pose_sub_ = this->create_subscription<geometry_msgs::msg::PoseWithCovarianceStamped>(
-            "/robot/pose", rclcpp::SensorDataQoS(), drone_state_->GetGlobalPoseCallback());
+        drone_state_  = std::make_shared<DroneState>();
+        odometry_sub_ = this->create_subscription<nav_msgs::msg::Odometry>(
+            "/robot/odometry", rclcpp::SensorDataQoS(), drone_state_->GetOdometryCallback());
         state_sub_ = this->create_subscription<creos_sdk_msgs::msg::State>(
             "robot/state", rclcpp::SensorDataQoS(), drone_state_->GetStateCallback());
         control_source_sub_ = this->create_subscription<creos_sdk_msgs::msg::ControlSource>(
@@ -168,9 +168,9 @@ private:
     std::shared_ptr<CircleReferences> circle_references_;
 
     // ROS Subscriptions
-    rclcpp::Subscription<sensor_msgs::msg::Joy>::SharedPtr                         controller_sub_;
-    rclcpp::Subscription<geometry_msgs::msg::PoseWithCovarianceStamped>::SharedPtr global_pose_sub_;
-    rclcpp::Subscription<creos_sdk_msgs::msg::State>::SharedPtr                    state_sub_;
+    rclcpp::Subscription<sensor_msgs::msg::Joy>::SharedPtr              controller_sub_;
+    rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr            odometry_sub_;
+    rclcpp::Subscription<creos_sdk_msgs::msg::State>::SharedPtr         state_sub_;
     rclcpp::Subscription<creos_sdk_msgs::msg::ControlSource>::SharedPtr control_source_sub_;
 
     // ROS Publishers

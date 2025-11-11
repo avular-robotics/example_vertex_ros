@@ -23,3 +23,5 @@ python3-pip
 ssh
 sudo
 vim
+unzip
+nlohmann-json3-dev

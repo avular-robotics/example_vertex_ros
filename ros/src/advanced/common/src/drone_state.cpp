@@ -16,18 +16,18 @@ DroneState::DroneState(std::optional<rclcpp::Logger> logger) : logger_(logger) {
 
 const std::array<float, 3> DroneState::GetPosition()
 {
-    std::lock_guard<std::mutex> lock(global_pose_mutex_);
+    std::lock_guard<std::mutex> lock(odometry_mutex_);
     return {
-        static_cast<float>(latest_global_pose_.pose.pose.position.x),
-        static_cast<float>(latest_global_pose_.pose.pose.position.y),
-        static_cast<float>(latest_global_pose_.pose.pose.position.z),
+        static_cast<float>(latest_odometry_.pose.pose.position.x),
+        static_cast<float>(latest_odometry_.pose.pose.position.y),
+        static_cast<float>(latest_odometry_.pose.pose.position.z),
     };
 }
 
 const geometry_msgs::msg::Quaternion &DroneState::GetOrientation()
 {
-    std::lock_guard<std::mutex> lock(global_pose_mutex_);
-    return latest_global_pose_.pose.pose.orientation;
+    std::lock_guard<std::mutex> lock(odometry_mutex_);
+    return latest_odometry_.pose.pose.orientation;
 }
 
 /**
@@ -35,12 +35,12 @@ const geometry_msgs::msg::Quaternion &DroneState::GetOrientation()
  */
 double DroneState::GetYaw()
 {
-    std::lock_guard<std::mutex> lock(global_pose_mutex_);
+    std::lock_guard<std::mutex> lock(odometry_mutex_);
 
     // Extract the quaternion from the pose
     tf2::Quaternion quat(
-        latest_global_pose_.pose.pose.orientation.x, latest_global_pose_.pose.pose.orientation.y,
-        latest_global_pose_.pose.pose.orientation.z, latest_global_pose_.pose.pose.orientation.w);
+        latest_odometry_.pose.pose.orientation.x, latest_odometry_.pose.pose.orientation.y,
+        latest_odometry_.pose.pose.orientation.z, latest_odometry_.pose.pose.orientation.w);
 
     // Convert quaternion to Euler angles
     double roll, pitch, yaw;
@@ -146,16 +146,15 @@ void DroneState::controlSourceCallback(const creos_sdk_msgs::msg::ControlSource 
     latest_control_source_ = msg;
 }
 
-std::function<void(const geometry_msgs::msg::PoseWithCovarianceStamped &)>
-    DroneState::GetGlobalPoseCallback()
+std::function<void(const nav_msgs::msg::Odometry &)> DroneState::GetOdometryCallback()
 {
-    return std::bind(&DroneState::globalPoseCallback, this, std::placeholders::_1);
+    return std::bind(&DroneState::odometryCallback, this, std::placeholders::_1);
 }
 
-void DroneState::globalPoseCallback(const geometry_msgs::msg::PoseWithCovarianceStamped &msg)
+void DroneState::odometryCallback(const nav_msgs::msg::Odometry &msg)
 {
-    std::lock_guard<std::mutex> lock(global_pose_mutex_);
-    latest_global_pose_ = msg;
+    std::lock_guard<std::mutex> lock(odometry_mutex_);
+    latest_odometry_ = msg;
 }
 
 std::function<void(const creos_sdk_msgs::msg::State &)> DroneState::GetStateCallback()

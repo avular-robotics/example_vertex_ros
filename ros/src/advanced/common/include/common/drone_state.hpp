@@ -11,7 +11,7 @@
 #include "drone_state_interface.hpp"
 
 #include <creos_sdk_msgs/msg/control_source.hpp>
-#include <geometry_msgs/msg/pose_with_covariance_stamped.hpp>
+#include <nav_msgs/msg/odometry.hpp>
 #include <creos_sdk_msgs/msg/state.hpp>
 
 #include <mutex>
@@ -38,17 +38,16 @@ public:
     bool IsLanding() override;
     bool IsInUserControlMode() override;
 
-    std::function<void(const geometry_msgs::msg::PoseWithCovarianceStamped &)>
-                                                                    GetGlobalPoseCallback();
+    std::function<void(const nav_msgs::msg::Odometry &)>            GetOdometryCallback();
     std::function<void(const creos_sdk_msgs::msg::ControlSource &)> GetControlSourceCallback();
     std::function<void(const creos_sdk_msgs::msg::State &)>         GetStateCallback();
 
 private:
     const std::optional<rclcpp::Logger> logger_;
 
-    std::mutex                                    global_pose_mutex_;
-    geometry_msgs::msg::PoseWithCovarianceStamped latest_global_pose_;
-    void globalPoseCallback(const geometry_msgs::msg::PoseWithCovarianceStamped &msg);
+    std::mutex              odometry_mutex_;
+    nav_msgs::msg::Odometry latest_odometry_;
+    void                    odometryCallback(const nav_msgs::msg::Odometry &msg);
 
     std::mutex                         control_source_mutex_;
     creos_sdk_msgs::msg::ControlSource latest_control_source_;

@@ -1,6 +1,7 @@
 FROM ubuntu:jammy
 
 ARG TARGETARCH
+ARG CREOS_VERSION
 
 SHELL ["/bin/bash", "-c"]
 
@@ -28,9 +29,16 @@ COPY docker/sdk.entrypoint.sh /entrypoint.sh
 RUN sudo chmod 0755 /entrypoint.sh
 ENTRYPOINT ["/entrypoint.sh"]
 
-# Install creos-sdk
-COPY sdk/sdk_bin/creos-*_${TARGETARCH}.deb /
-RUN apt update && apt install -y /creos-*_${TARGETARCH}.deb
+# Install Creos
+RUN wget https://avular.blob.core.windows.net/creos/creos_sdk_${CREOS_VERSION}_jammy_${TARGETARCH}.zip \
+    && unzip creos_sdk_${CREOS_VERSION}_jammy_${TARGETARCH}.zip \
+    && apt update \
+    && cd creos_sdk_client_package_Release_jammy_${TARGETARCH} \
+    && dpkg -i creos-utils*_*_${TARGETARCH}.deb \
+    && dpkg -i creos-cli*_${TARGETARCH}.deb \
+    && cd .. \
+    && rm -rf creos_sdk_client_package_Release_jammy_${TARGETARCH} \
+    && rm creos_sdk_${CREOS_VERSION}_jammy_${TARGETARCH}.zip
 
 USER user
 WORKDIR /home/user/ws

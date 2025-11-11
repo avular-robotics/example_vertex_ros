@@ -12,6 +12,7 @@
 #include <rclcpp/rclcpp.hpp>
 
 #include <sensor_msgs/msg/joy.hpp>
+#include <nav_msgs/msg/odometry.hpp>
 
 #include <common/logging.hpp>
 #include <common/drone_state.hpp>
@@ -36,8 +37,8 @@ public:
 
         auto max_yaw_rate_param = rcl_interfaces::msg::ParameterDescriptor{};
         max_yaw_rate_param.description =
-            "Maximum yaw rate in degrees per second. Default is 10 deg/s.";
-        this->declare_parameter("max_yaw_rate", 10.0, max_yaw_rate_param);
+            "Maximum yaw rate in degrees per second. Default is 60 deg/s.";
+        this->declare_parameter("max_yaw_rate", 60.0, max_yaw_rate_param);
 
         auto yaw_rate_mode_param        = rcl_interfaces::msg::ParameterDescriptor{};
         yaw_rate_mode_param.description = "Enable yaw rate mode. Default is false.";
@@ -49,9 +50,9 @@ public:
         yaw_rate_mode_             = this->get_parameter("yaw_rate_mode").as_bool();
 
         // Setup DroneState
-        drone_state_     = std::make_shared<DroneState>(this->get_logger());
-        global_pose_sub_ = this->create_subscription<geometry_msgs::msg::PoseWithCovarianceStamped>(
-            "/robot/pose", rclcpp::SensorDataQoS(), drone_state_->GetGlobalPoseCallback());
+        drone_state_  = std::make_shared<DroneState>(this->get_logger());
+        odometry_sub_ = this->create_subscription<nav_msgs::msg::Odometry>(
+            "/robot/odometry", rclcpp::SensorDataQoS(), drone_state_->GetOdometryCallback());
         state_sub_ = this->create_subscription<creos_sdk_msgs::msg::State>(
             "robot/state", rclcpp::SensorDataQoS(), drone_state_->GetStateCallback());
         control_source_sub_ = this->create_subscription<creos_sdk_msgs::msg::ControlSource>(
@@ -88,9 +89,9 @@ private:
     std::shared_ptr<RemoteControllerReferences> remote_controller_references_;
 
     // ROS Subscriptions
-    rclcpp::Subscription<sensor_msgs::msg::Joy>::SharedPtr                         controller_sub_;
-    rclcpp::Subscription<geometry_msgs::msg::PoseWithCovarianceStamped>::SharedPtr global_pose_sub_;
-    rclcpp::Subscription<creos_sdk_msgs::msg::State>::SharedPtr                    state_sub_;
+    rclcpp::Subscription<sensor_msgs::msg::Joy>::SharedPtr              controller_sub_;
+    rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr            odometry_sub_;
+    rclcpp::Subscription<creos_sdk_msgs::msg::State>::SharedPtr         state_sub_;
     rclcpp::Subscription<creos_sdk_msgs::msg::ControlSource>::SharedPtr control_source_sub_;
 
     // ROS Publishers

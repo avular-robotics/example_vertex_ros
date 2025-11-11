@@ -35,7 +35,7 @@ The following CLI arguments can be used:
 - `--verbose`: Enable verbose output.
 - `--vmax_xy`: Maximum velocity in the horizontal plane in m/s. Default is 5 m/s.
 - `--vmax_z`: Maximum velocity in the vertical plane in m/s. Default is 1 m/s.
-- `--wmax_deg`: Maximum yaw rate in degrees per second. Default is 10 deg/s.
+- `--wmax_deg`: Maximum yaw rate in degrees per second. Default is 60 deg/s.
 - `--yaw_rate_mode`: Enable yaw rate mode. Default is false.
 
 Example:

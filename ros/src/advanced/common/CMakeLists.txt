@@ -15,6 +15,7 @@ option(BUILD_TESTS "Build the tests" OFF)
 find_package(rclcpp REQUIRED)
 find_package(creos_sdk_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
+find_package(nav_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(tf2_ros REQUIRED)
 
@@ -31,7 +32,7 @@ if(BUILD_TESTS)
     add_subdirectory(tests)
 endif()
 
-ament_target_dependencies(${PROJECT_NAME} rclcpp creos_sdk_msgs sensor_msgs geometry_msgs tf2_ros)
+ament_target_dependencies(${PROJECT_NAME} rclcpp creos_sdk_msgs sensor_msgs nav_msgs geometry_msgs tf2_ros)
 ament_export_include_directories(include)
 ament_export_libraries(${PROJECT_NAME})
 

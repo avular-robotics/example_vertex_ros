@@ -12,7 +12,7 @@
 void HereLinkRemote::RegisterActivationButtonCallback(std::function<void()> callback)
 {
     activation_button_pressed_ = callback;
-    RCLCPP_INFO(logger_, "HereLinkRemote: Press the C button to toggle execution of the example");
+    RCLCPP_INFO(logger_, "HereLinkRemote: Press the D button to toggle execution of the example");
 }
 
 std::function<void(const sensor_msgs::msg::Joy &)> HereLinkRemote::GetControllerStateCallback()
@@ -23,7 +23,7 @@ std::function<void(const sensor_msgs::msg::Joy &)> HereLinkRemote::GetController
 void HereLinkRemote::ControllerStateReceivedCallback(const sensor_msgs::msg::Joy &controller_state)
 {
     // Toggle execution when the button is pressed
-    if(controller_state.buttons[ButtonIndex::kButtonC] == 1)
+    if(controller_state.buttons[ButtonIndex::kButtonD] == 1)
     {
         activation_button_pressed_();
     }

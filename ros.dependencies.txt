@@ -27,3 +27,4 @@ ros-humble-ament-cmake
 ssh
 sudo
 vim
+unzip

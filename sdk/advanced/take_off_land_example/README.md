@@ -15,7 +15,7 @@ The code is split up into multiple parts:
 
 The main function sets up all the classes and runs the main loop. It will take care of the CLI arguments and will subscribe to the correct API's and register the correct callbacks.
 
-The execution of the example can be toggled using the C button (SF switch when using Jeti Controller). Once the execution is active, the FlightController `Run` function will be called. This function will check if the drone is in the correct state and automatically takeoff. This will only happen if the drone is `armed` and is in `user` control mode. The takeoff will happen after x seconds, where x is the value of the `takeoff_delay` variable. Once the drone has completed the takeoff, the drone will land. This logic can all be found inside the `main` method.
+The execution of the example can be toggled using the D button (SF switch when using Jeti Controller). Once the execution is active, the FlightController `Run` function will be called. This function will check if the drone is in the correct state and automatically takeoff. This will only happen if the drone is `armed` and is in `user` control mode. The takeoff will happen after x seconds, where x is the value of the `takeoff_delay` variable. Once the drone has completed the takeoff, the drone will land. This logic can all be found inside the `main` method.
 
 ## Usage
 

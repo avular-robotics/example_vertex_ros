@@ -14,6 +14,7 @@ option(BUILD_TESTS "Build the tests" OFF)
 
 find_package(rclcpp REQUIRED)
 find_package(creos_sdk_msgs REQUIRED)
+find_package(nav_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(advanced_common REQUIRED)
 find_package(tf2_ros REQUIRED)
@@ -35,7 +36,7 @@ install(
 add_executable(${PROJECT_NAME} src/main.cpp)
 
 target_link_libraries(${PROJECT_NAME} ${PROJECT_NAME}_lib)
-ament_target_dependencies(${PROJECT_NAME} rclcpp advanced_common)
+ament_target_dependencies(${PROJECT_NAME} rclcpp nav_msgs advanced_common)
 
 if(BUILD_TESTS)
     add_subdirectory(tests)

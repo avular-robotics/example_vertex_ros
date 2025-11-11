@@ -8,6 +8,8 @@ services:
     build:
       context: ../
       dockerfile: docker/sdk.Dockerfile
+      args:
+        CREOS_VERSION: "0.4.0"
     pull_policy: build
     # Make sure the container can access the host's network
     privileged: true
@@ -31,6 +33,7 @@ services:
       dockerfile: docker/ros.Dockerfile
       args:
         USERNAME: user
+        CREOS_VERSION: "0.4.0"
     pull_policy: build
     # Make sure the container can access the host's network
     privileged: true

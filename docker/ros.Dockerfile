@@ -4,6 +4,7 @@ ARG USERNAME=USERNAME
 ARG USER_UID=1000
 ARG USER_GID=$USER_UID
 ARG TARGETARCH
+ARG CREOS_VERSION
 
 SHELL ["/bin/bash", "-c"]
 
@@ -49,9 +50,17 @@ COPY docker/ros.entrypoint.sh /entrypoint.sh
 RUN sudo chmod 0755 /entrypoint.sh
 ENTRYPOINT ["/entrypoint.sh"]
 
-# Install binaries
-COPY ros/ros_bin/*${TARGETARCH}*.deb /
-RUN apt update && apt install -y /*${TARGETARCH}*.deb
+# Install Creos
+RUN wget https://avular.blob.core.windows.net/creos/creos_sdk_${CREOS_VERSION}_jammy_${TARGETARCH}.zip \
+    && unzip creos_sdk_${CREOS_VERSION}_jammy_${TARGETARCH}.zip \
+    && apt update \
+    && cd creos_sdk_client_package_Release_jammy_${TARGETARCH} \
+    && dpkg -i creos-utils_*_${TARGETARCH}.deb \
+    && dpkg -i creos-client_*_${TARGETARCH}.deb \
+    && dpkg -i creos-sdk-ros_*_${TARGETARCH}.deb \
+    && cd .. \
+    && rm -rf creos_sdk_client_package_Release_jammy_${TARGETARCH} \
+    && rm creos_sdk_${CREOS_VERSION}_jammy_${TARGETARCH}.zip
 
 USER $USERNAME
 WORKDIR /home/$USERNAME/ws

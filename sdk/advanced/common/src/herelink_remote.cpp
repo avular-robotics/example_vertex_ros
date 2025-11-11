@@ -13,7 +13,7 @@
 void HereLinkRemote::RegisterActivationButtonCallback(std::function<void()> callback)
 {
     activation_button_pressed_ = callback;
-    spdlog::info("HereLinkRemote: Press the C button to toggle execution of the example");
+    spdlog::info("HereLinkRemote: Press the D button to toggle execution of the example");
 }
 
 std::function<void(const creos_messages::ControllerState &)>
@@ -26,7 +26,7 @@ void HereLinkRemote::ControllerStateReceivedCallback(
     const creos_messages::ControllerState &controller_state)
 {
     // Toggle execution when the button is pressed
-    if(controller_state.buttons[ButtonIndex::kButtonC] ==
+    if(controller_state.buttons[ButtonIndex::kButtonD] ==
        creos_messages::ControllerState::ButtonState::kPressed)
     {
         activation_button_pressed_();

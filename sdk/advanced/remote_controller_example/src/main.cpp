@@ -38,7 +38,7 @@ int main(int argc, char **argv)
 
     double      max_velocity_horizontal_m = 3;
     double      max_velocity_vertical_m   = 1;
-    double      max_yaw_rate_deg          = 30;
+    double      max_yaw_rate_deg          = 60;
     bool        yaw_rate_mode             = false;
     std::string host                      = "";
 
@@ -53,7 +53,7 @@ int main(int argc, char **argv)
     app.add_option("--vmax_z", max_velocity_vertical_m,
                    "Maximum velocity in the vertical plane in m/s. Default is 1 m/s.");
     app.add_option("--wmax_deg", max_yaw_rate_deg,
-                   "Maximum yaw rate in degrees per second. Default is 10 deg/s.");
+                   "Maximum yaw rate in degrees per second. Default is 60 deg/s.");
     app.add_flag("--yaw_rate_mode", yaw_rate_mode, "Enable yaw rate mode. Default is false.");
     CLI11_PARSE(app, argc, argv);
 
@@ -64,7 +64,7 @@ int main(int argc, char **argv)
 
     // Setup DroneState
     std::shared_ptr<DroneState> drone_state = std::make_shared<DroneState>(true);
-    client.sensors()->subscribeToPose(drone_state->GetGlobalPoseCallback());
+    client.sensors()->subscribeToOdometry(drone_state->GetOdometryCallback());
     client.setpoint_control()->subscribeToCurrentControlSource(
         drone_state->GetControlSourceCallback());
     client.diagnostics()->subscribeToState(drone_state->GetStateCallback());

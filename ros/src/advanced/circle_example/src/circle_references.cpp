@@ -43,7 +43,7 @@ creos_sdk_msgs::msg::StateReference CircleReferences::GetNewStateReference(const
     auto   reference    = computeNewPosition(middle_point_circle_, initial_heading_, circle_angle);
 
     reference.header.stamp    = time;
-    reference.header.frame_id = "NED_odom";
+    reference.header.frame_id = "odom";
 
     // Fly the circle in position mode and attitude mode.
     reference.translation_mode = creos_sdk_msgs::msg::StateReference::TRANSLATION_MODE_POSITION;

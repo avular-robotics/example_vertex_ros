@@ -121,7 +121,7 @@ bool FlightController::isTakeOffDelayExpired()
     if(elapsed_since_last_log > std::chrono::milliseconds(200))
     {
         previous_log_time = now;
-        RCLCPP_INFO(logger_, "Drone will take off in %ld ms",
+        RCLCPP_INFO(logger_, "Drone will take off in %ld s",
                     (take_off_delay_s_ - elapsed_s.count()));
     }
 

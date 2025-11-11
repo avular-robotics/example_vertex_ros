@@ -118,7 +118,7 @@ bool FlightController::isTakeOffDelayExpired()
     if(elapsed_since_last_log > std::chrono::milliseconds(200))
     {
         previous_log_time = now;
-        spdlog::info("Drone will take off in {} ms", (take_off_delay_s_ - elapsed_s.count()));
+        spdlog::info("Drone will take off in {} s", (take_off_delay_s_ - elapsed_s.count()));
     }
 
     return elapsed_s.count() >= take_off_delay_s_;
