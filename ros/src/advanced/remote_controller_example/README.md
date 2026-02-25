@@ -1,6 +1,6 @@
 # Remote Controller Example
 
-This example demonstrates how to use the remote controller input to control the Vertex drone via state references. The drone will respond to the remote controller input and move accordingly. The maximum velocities and yaw rate can be changed using CLI arguments.
+This example demonstrates how to use the remote controller input to control the Vertex drone via state references. The drone will respond to the remote controller input and move accordingly. The maximum velocities and yaw rate can be changed through ROS parameters.
 
 ## Structure
 
@@ -12,12 +12,34 @@ The code is split up into multiple parts:
 
 ## RemoteControllerReferences
 
-This class is responsible for calculating the setpoints using the controller input. Initially it uses the current state of the drone to calculate the setpoints. The maximum velocities and yaw rate can be changed using CLI arguments. The setpoints are calculated and a new setpoint is returned upon every call to `CreateReference`. The drone's movement is controlled in the horizontal and vertical planes, as well as its yaw.
+This class is responsible for calculating the setpoints using the controller input. Initially it uses the current state of the drone to calculate the setpoints. The maximum velocities and yaw rate can be changed through ROS parameters. The setpoints are calculated and a new setpoint is returned upon every call to `CreateReference`. The drone's movement is controlled in the horizontal and vertical planes, as well as its yaw.
 
 ## Main
 
-The main function sets up all the classes and runs the main loop. It handles the CLI arguments, subscribes to the correct APIs, and registers the appropriate callbacks.
+The main function sets up all the classes and runs the main loop. It handles the ROS parameters, subscribes to the correct topics, and registers the appropriate callbacks.
 
-The main logic of the example can be found in the `handleRemoteControllerInput` function. This function is called every time a controller data message is received by the SDK client. The function keeps track of the current and last control mode. By switching the drone into `user` control mode, the drone will start listening to the setpoints calculated by the `RemoteControllerReferences` class.
+The main logic of the example can be found in the `handleRemoteControllerInput` function. This function is called every time a controller data message is received by the ROS node. The function keeps track of the current and last control mode. By switching the drone into `user` control mode, the drone will start listening to the setpoints calculated by the `RemoteControllerReferences` class.
 
 If at any point you want to control the drone without the SDK, you can switch the control mode to `manual` and the drone will stop listening to the setpoints sent by the example and the will be controlled using the regular RC input.
+
+## Usage
+
+The example can be executed by running the following command:
+
+```bash
+ros2 run remote_controller_example remote_controller_example
+```
+
+The following ROS parameters can be used:
+
+- `max_velocity_horizontal`: Maximum velocity in the horizontal plane in m/s. Default is 5 m/s.
+- `max_velocity_vertical`: Maximum velocity in the vertical direction in m/s. Default is 1 m/s.
+- `max_yaw_rate`: Maximum yaw rate in degrees per second. Default is 60 deg/s.
+
+Example:
+
+```bash
+ros2 run remote_controller_example remote_controller_example --ros-args -p max_velocity_horizontal:=3.0 -p max_velocity_vertical:=0.5 -p max_yaw_rate:=5
+```
+
+The example can be stopped by pressing `Ctrl + C`.

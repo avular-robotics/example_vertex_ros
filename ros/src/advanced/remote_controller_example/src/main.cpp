@@ -12,7 +12,6 @@
 #include <rclcpp/rclcpp.hpp>
 
 #include <sensor_msgs/msg/joy.hpp>
-#include <nav_msgs/msg/odometry.hpp>
 
 #include <common/logging.hpp>
 #include <common/drone_state.hpp>
@@ -40,21 +39,16 @@ public:
             "Maximum yaw rate in degrees per second. Default is 60 deg/s.";
         this->declare_parameter("max_yaw_rate", 60.0, max_yaw_rate_param);
 
-        auto yaw_rate_mode_param        = rcl_interfaces::msg::ParameterDescriptor{};
-        yaw_rate_mode_param.description = "Enable yaw rate mode. Default is false.";
-        this->declare_parameter("yaw_rate_mode", false, yaw_rate_mode_param);
-
         max_velocity_horizontal_m_ = this->get_parameter("max_velocity_horizontal").as_double();
         max_velocity_vertical_m_   = this->get_parameter("max_velocity_vertical").as_double();
         max_yaw_rate_deg_          = this->get_parameter("max_yaw_rate").as_double();
-        yaw_rate_mode_             = this->get_parameter("yaw_rate_mode").as_bool();
 
         // Setup DroneState
-        drone_state_  = std::make_shared<DroneState>(this->get_logger());
-        odometry_sub_ = this->create_subscription<nav_msgs::msg::Odometry>(
-            "/robot/odometry", rclcpp::SensorDataQoS(), drone_state_->GetOdometryCallback());
+        drone_state_     = std::make_shared<DroneState>(this->get_logger());
+        global_pose_sub_ = this->create_subscription<geometry_msgs::msg::PoseWithCovarianceStamped>(
+            "/robot/pose", rclcpp::SensorDataQoS(), drone_state_->GetGlobalPoseCallback());
         state_sub_ = this->create_subscription<creos_sdk_msgs::msg::State>(
-            "robot/state", rclcpp::SensorDataQoS(), drone_state_->GetStateCallback());
+            "/robot/state", rclcpp::SensorDataQoS(), drone_state_->GetStateCallback());
         control_source_sub_ = this->create_subscription<creos_sdk_msgs::msg::ControlSource>(
             "/robot/current_control_source", rclcpp::SensorDataQoS(),
             drone_state_->GetControlSourceCallback());
@@ -74,24 +68,22 @@ public:
 
         // Setup Remote Controller References
         remote_controller_references_ = std::make_shared<RemoteControllerReferences>(
-            max_velocity_horizontal_m_, max_velocity_vertical_m_, max_yaw_rate_deg_,
-            yaw_rate_mode_);
+            max_velocity_horizontal_m_, max_velocity_vertical_m_, max_yaw_rate_deg_);
     }
 
 private:
     double max_velocity_horizontal_m_;
     double max_velocity_vertical_m_;
     double max_yaw_rate_deg_;
-    bool   yaw_rate_mode_;
 
     std::shared_ptr<DroneState> drone_state_;
 
     std::shared_ptr<RemoteControllerReferences> remote_controller_references_;
 
     // ROS Subscriptions
-    rclcpp::Subscription<sensor_msgs::msg::Joy>::SharedPtr              controller_sub_;
-    rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr            odometry_sub_;
-    rclcpp::Subscription<creos_sdk_msgs::msg::State>::SharedPtr         state_sub_;
+    rclcpp::Subscription<sensor_msgs::msg::Joy>::SharedPtr                         controller_sub_;
+    rclcpp::Subscription<geometry_msgs::msg::PoseWithCovarianceStamped>::SharedPtr global_pose_sub_;
+    rclcpp::Subscription<creos_sdk_msgs::msg::State>::SharedPtr                    state_sub_;
     rclcpp::Subscription<creos_sdk_msgs::msg::ControlSource>::SharedPtr control_source_sub_;
 
     // ROS Publishers

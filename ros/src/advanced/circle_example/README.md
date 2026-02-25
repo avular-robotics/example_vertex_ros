@@ -24,3 +24,28 @@ The main function sets up all the classes and runs the main loop. It will take c
 The execution of the example can be toggled using the D button (SF switch when using Jeti Controller). Once the execution is active, the FlightController `Run` function will be called. This function will check if the drone is in the correct state and automatically takeoff. This will only happen if the drone is `armed` and is in `user` control mode. The takeoff will happen after x seconds, where x is the value of the `takeoff_delay` variable. Once the drone is in the air, the `CircleReferences` class will be called to calculate the setpoints for the drone to fly in a circle.
 
 If at any point the execution is toggled off, the drone will stay still in the air. If at any point you want to take control of the drone, you can do so by switching the drone into `manual` mode. The drone will then stop listening to the setpoints and will only listen to the controller input.
+
+## Usage
+
+The example can be executed by running the following command:
+
+```bash
+ros2 run circle_example circle_example
+```
+
+The following ROS parameters can be used:
+
+- `circle_radius`: Radius of the circle in metres. Default is 2 metres.
+- `speed`: Speed of the drone in metres per second. Default is 0.5 m/s.
+- `acceleration`: Maximum acceleration of the drone in metres per second squared. Default is 1.0 m/s^2.
+- `frequency`: Update frequency in Hertz. Default is 10 Hz.
+- `take_off_delay`: Delay in seconds before the drone takes off when all take off conditions are met. Default is 2 seconds.
+- `controller`: Controller type tu use: 'herelink' or 'jeti'. Default is 'herelink'.
+
+Example:
+
+```bash
+ros2 run circle_example circle_example --ros-args -p circle_radius:=10.0 -p speed:=3.5 -p acceleration:=1.5 -p frequency:=20.0
+```
+
+The example can be stopped by pressing `Ctrl + C`.

@@ -15,7 +15,7 @@
 #include <creos/client.hpp>
 #include <creos/messages/controller_state.hpp>
 #include <creos/messages/state_reference.hpp>
-#include <creos/messages/odometry.hpp>
+#include <creos/messages/pose.hpp>
 
 #include <common/logging.hpp>
 #include <common/drone_state.hpp>
@@ -44,6 +44,7 @@ int main(int argc, char **argv)
 
     double           circle_radius_m     = 2;
     double           speed_mps           = 0.5;
+    double           accel_mps2          = 1.0;
     unsigned         update_frequency_hz = 100;
     unsigned         take_off_delay_s    = 2;
     ControllerType   controller_type     = ControllerType::kHerelink;
@@ -59,6 +60,8 @@ int main(int argc, char **argv)
                    "Radius of the circle in meters. Default is 2 meters.");
     app.add_option("-s,--speed", speed_mps,
                    "Speed of the drone in meters per second. Default is 0.5 m/s.");
+    app.add_option("-a,--accel", accel_mps2,
+                   "Acceleration of the drone in meters per second squared. Default is 1.0 m/s^2.");
     app.add_option("-f,--frequency", update_frequency_hz,
                    "Update frequency in Hz. Default is 100 Hz.");
     app.add_option("-d,--delay", take_off_delay_s,
@@ -72,12 +75,23 @@ int main(int argc, char **argv)
 
     setup_logging("circle_example");
 
+    // Check that the speed does not violate the acceleration limits.
+    if(std::pow(speed_mps, 2) > accel_mps2 * circle_radius_m)
+    {
+        double new_speed = std::sqrt(accel_mps2 * circle_radius_m);
+        spdlog::warn(
+            "The selected speed ({} m/s) and circle radius ({} m) violate the acceleration "
+            "limit ({} m/s^2). Adjusting speed to ({} m/s) to fit within the acceleration limits.",
+            speed_mps, circle_radius_m, accel_mps2, new_speed);
+        speed_mps = new_speed;
+    }
+
     // Connect to the CreOS server
     creos::Client client = createClient(host);
 
     // Setup DroneState
     std::shared_ptr<DroneState> drone_state = std::make_shared<DroneState>();
-    client.sensors()->subscribeToOdometry(drone_state->GetOdometryCallback());
+    client.sensors()->subscribeToPose(drone_state->GetGlobalPoseCallback());
     client.setpoint_control()->subscribeToCurrentControlSource(
         drone_state->GetControlSourceCallback());
     client.diagnostics()->subscribeToState(drone_state->GetStateCallback());
@@ -111,7 +125,7 @@ int main(int argc, char **argv)
         });
 
     CircleReferences circle_references =
-        CircleReferences(update_frequency_hz, circle_radius_m, speed_mps);
+        CircleReferences(update_frequency_hz, circle_radius_m, speed_mps, accel_mps2);
 
     FlightState state = FlightState::kUnknown;
     while(true)

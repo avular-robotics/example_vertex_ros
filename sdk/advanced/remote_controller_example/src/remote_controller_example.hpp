@@ -29,8 +29,6 @@ void handleRemoteControllerInput(const creos_messages::ControllerState &state,
 {
     static creos_messages::ControlSource previous_control_source =
         creos_messages::ControlSource::kDisabled;
-    static std::optional<std::chrono::time_point<std::chrono::steady_clock>> last_pub_time =
-        std::nullopt;
 
     auto current_control_source = drone_state->GetControlSource();
 
@@ -45,7 +43,6 @@ void handleRemoteControllerInput(const creos_messages::ControllerState &state,
         else
         {
             spdlog::info("User control disabled");
-            remote_controller_references.Reset();
         }
         previous_control_source = current_control_source;
     }
@@ -53,31 +50,13 @@ void handleRemoteControllerInput(const creos_messages::ControllerState &state,
     // Only send StateReference when the control source is set to User and the drone is flying
     if(current_control_source == creos_messages::ControlSource::kUser && drone_state->IsInFlight())
     {
-        // Set the last_pub_time to the current time if it is not set
-        // And return to prevent calculating a reference with a time delta of 0
-        if(!last_pub_time.has_value())
-        {
-            last_pub_time = std::chrono::steady_clock::now();
-            return;
-        }
-
         const std::array<float, 2> left_stick = {state.axes[kYawIndex], state.axes[kThrottleIndex]};
         const std::array<float, 2> right_stick = {state.axes[kRollIndex], state.axes[kPitchIndex]};
 
-        auto  current_time = std::chrono::steady_clock::now();
-        float time_delta_s =
-            std::chrono::duration<float>(current_time - last_pub_time.value()).count();
-
         // Use the timestamp from the ControllerState message
         creos_messages::StateReference reference = remote_controller_references.CreateReference(
-            left_stick, right_stick, drone_state->GetYaw(), time_delta_s, state.timestamp);
+            left_stick, right_stick, drone_state->GetOrientation(), state.timestamp);
 
         setpoint_control->publishStateReference(reference);
-        last_pub_time = current_time;
-    }
-    else
-    {
-        // Reset the last_pub_time when the publishing is not active
-        last_pub_time = std::nullopt;
     }
 }

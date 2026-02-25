@@ -10,6 +10,7 @@
 #pragma once
 
 #include <creos_sdk_msgs/msg/control_source.hpp>
+#include <geometry_msgs/msg/quaternion.hpp>
 
 class IDroneState
 {
@@ -17,6 +18,7 @@ public:
     virtual ~IDroneState() = default;
 
     virtual double                                    GetYaw()           = 0;
+    virtual const geometry_msgs::msg::Quaternion     &GetOrientation()   = 0;
     virtual const creos_sdk_msgs::msg::ControlSource &GetControlSource() = 0;
 
     virtual bool IsArmed()                     = 0;

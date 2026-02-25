@@ -29,8 +29,6 @@ void handleRemoteControllerInput(
     rclcpp::Logger                                                    logger)
 {
     static creos_sdk_msgs::msg::ControlSource previous_control_source;
-    static std::optional<std::chrono::time_point<std::chrono::steady_clock>> last_pub_time =
-        std::nullopt;
 
     auto current_control_source = drone_state->GetControlSource();
 
@@ -46,7 +44,6 @@ void handleRemoteControllerInput(
         else
         {
             RCLCPP_INFO(logger, "User control disabled");
-            remote_controller_references.Reset();
         }
         previous_control_source = current_control_source;
     }
@@ -55,32 +52,13 @@ void handleRemoteControllerInput(
     if(current_control_source.source == creos_sdk_msgs::msg::ControlSource::USER &&
        drone_state->IsInFlight())
     {
-        // Set the last_pub_time to the current time if it is not set
-        // And return to prevent calculating a reference with a time delta of 0
-        if(!last_pub_time.has_value())
-        {
-            last_pub_time = std::chrono::steady_clock::now();
-            return;
-        }
-
         const std::array<float, 2> left_stick = {state.axes[kYawIndex], state.axes[kThrottleIndex]};
         const std::array<float, 2> right_stick = {state.axes[kRollIndex], state.axes[kPitchIndex]};
-
-        auto  current_time = std::chrono::steady_clock::now();
-        float time_delta_s =
-            std::chrono::duration<float>(current_time - last_pub_time.value()).count();
 
         // Use the timestamp from the Joy message
         creos_sdk_msgs::msg::StateReference reference =
             remote_controller_references.CreateReference(
-                left_stick, right_stick, drone_state->GetYaw(), time_delta_s, state.header.stamp);
+                left_stick, right_stick, drone_state->GetOrientation(), state.header.stamp);
         state_reference_pub->publish(reference);
-
-        last_pub_time = current_time;
-    }
-    else
-    {
-        // Reset the last_pub_time when the publishing is not active
-        last_pub_time = std::nullopt;
     }
 }

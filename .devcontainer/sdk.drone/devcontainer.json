@@ -5,7 +5,10 @@
 	"privileged": true,
 	"build": {
 		"dockerfile": "../../docker/sdk.Dockerfile",
-		"context": "../.."
+		"context": "../..",        
+		"args": {
+            "CREOS_VERSION": "0.6.0"
+        }
 	},
 	"customizations": {
 		"vscode": {

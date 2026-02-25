@@ -24,29 +24,28 @@ public:
 
     CircleReferences(double update_frequency_hz,
                      double circle_radius_m_ = 2,
-                     double speed_mps        = 0.5);
+                     double speed_mps        = 0.5,
+                     double accel_mps2       = 1.0);
     ~CircleReferences() = default;
 
     void Reset(const std::array<float, 3> position, const double yaw_heading);
     creos_messages::StateReference GetNewStateReference();
 
 private:
-    const double update_frequency_hz_;
+    const double time_step_s_;
     const double circle_radius_m_;
-    const double circle_execution_time_s_;
+    const double speed_mps_;
+    const double accel_mps2_;
 
-    unsigned             sine_counter_        = 0;
+    double               time_s_              = 0.0;
     float                initial_heading_     = 0.0f;
     std::array<float, 3> middle_point_circle_ = {0.0f, 0.0f, 0.0f};
-
-    unsigned totalSteps() const { return update_frequency_hz_ * circle_execution_time_s_; }
-    double   angleSteps() const { return (2.0 * std::numbers::pi) / totalSteps(); }
 
     // Helper functions
     const creos_messages::StateReference computeNewPosition(
         const std::array<float, 3> &circle_middle,
         const double                initial_heading,
-        const double                circle_angle) const;
+        const double                time_s) const;
     const std::array<float, 3> computeCircleMiddle(const std::array<float, 3> &begin_position,
                                                    const double initial_heading) const;
 };

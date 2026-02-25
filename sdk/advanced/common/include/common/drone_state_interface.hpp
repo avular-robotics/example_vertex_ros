@@ -17,6 +17,7 @@ public:
     virtual ~IDroneState() = default;
 
     virtual double                               GetYaw()           = 0;
+    virtual const creos_messages::Quaterniond   &GetOrientation()   = 0;
     virtual const creos_messages::ControlSource &GetControlSource() = 0;
 
     virtual bool IsArmed()                     = 0;

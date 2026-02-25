@@ -23,6 +23,7 @@ ros-humble-catch-ros2
 ros-humble-rviz2
 ros-humble-rmw-cyclonedds-cpp
 ros-humble-nav-msgs
+ros-humble-nav2-msgs
 ros-humble-ament-cmake
 ssh
 sudo

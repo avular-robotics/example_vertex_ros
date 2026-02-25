@@ -38,6 +38,7 @@ The following CLI arguments can be used:
 - `--verbose`: Enable verbose output.
 - `--radius`: Radius of the circle in meters. Default is 2 meters.
 - `--speed`: Speed of the drone in meters per second. Default is 0.5 m/s.
+- `--accel`: Maximum acceleration of the drone in metres per second squared. Default is 1.0 m/s^2.
 - `-frequency`: Update frequency in Hz. Default is 100 Hz.
 - `--delay`: Delay in seconds before the drone takes off when all take off conditions are met. Default is 2 seconds.
 - `--jeti`: Use Jeti controller. Default is Herelink.
@@ -45,7 +46,7 @@ The following CLI arguments can be used:
 Example:
 
 ```bash
-./build/bin/circle_example --radius 3 --speed 1 --delay 5
+./build/bin/circle_example --radius 3 --speed 1 --accel 3 --delay 5
 ```
 
 The example can be stopped by pressing `Ctrl + C`.

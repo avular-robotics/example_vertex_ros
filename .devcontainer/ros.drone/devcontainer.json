@@ -8,7 +8,8 @@
         "dockerfile": "../../docker/ros.Dockerfile",
         "context": "../..",
         "args": {
-            "USERNAME": "user"
+            "USERNAME": "user",
+            "CREOS_VERSION": "0.6.0"
         }
     },
     "workspaceFolder": "/home/user/ws",
