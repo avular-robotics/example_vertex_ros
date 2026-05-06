@@ -13,6 +13,7 @@ Currently, the following examples are available:
   - [Takeoff and Land Example](advanced/take_off_land_example/README.md)
   - [Circle Example](advanced/circle_example/README.md)
   - [Remote Controller Example](advanced/remote_controller_example/README.md)
+  - [Waypoint Example](advanced/waypoint_example/README.md)
 
 **Environments:**
 

@@ -93,7 +93,7 @@ public:
                 try
                 {
                     auto request    = std::make_shared<creos_sdk_msgs::srv::SendCommand::Request>();
-                    request->action = creos_sdk_msgs::srv::SendCommand::Request::TAKE_OFF;
+                    request->action = creos_sdk_msgs::srv::SendCommand::Request::TAKEOFF;
                     send_command_client_->async_send_request(request);
                 }
                 catch(const std::exception &e)
