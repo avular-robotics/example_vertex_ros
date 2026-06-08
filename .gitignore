@@ -5,3 +5,4 @@ ros/log/
 ros/install/
 ros/build/
 CMakeFiles/
+*.deb

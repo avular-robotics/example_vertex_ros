@@ -30,3 +30,4 @@ sudo
 vim
 unzip
 nlohmann-json3-dev
+libgeographic-dev
