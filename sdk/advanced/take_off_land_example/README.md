@@ -1,6 +1,8 @@
 # Take off and land example
 
-The example showcases how to perform a takeoff and land. It will take off after the drone has been armed and is in the correct state. The drone will take of after a specified delay and will land as soon as the drone has completed the takeoff.
+The example showcases how to perform a takeoff and land. It will take off after the drone has been armed and is in the correct state. The drone will take off after a specified delay and will land as soon as the drone has completed the takeoff.
+
+> **Pre-condition:** The drone must be stationary on the ground before starting this example.
 
 ## Structure
 
@@ -15,7 +17,9 @@ The code is split up into multiple parts:
 
 The main function sets up all the classes and runs the main loop. It will take care of the CLI arguments and will subscribe to the correct API's and register the correct callbacks.
 
-The execution of the example can be toggled using the D button (SF switch when using Jeti Controller). Once the execution is active, the FlightController `Run` function will be called. This function will check if the drone is in the correct state and automatically takeoff. This will only happen if the drone is `armed` and is in `user` control mode. The takeoff will happen after x seconds, where x is the value of the `takeoff_delay` variable. Once the drone has completed the takeoff, the drone will land. This logic can all be found inside the `main` method.
+The execution of the example can be toggled using the D button (SF switch when using Jeti Controller). Once the execution is active, the FlightController `Run` function will be called. This function will check if the drone is in the correct state and automatically takeoff. This will only happen if the drone is `armed` and is in **SDK mode** (referred to as `user` control mode in the API). The takeoff will happen after x seconds, where x is the value of the `takeoff_delay` variable. Once the drone has completed the takeoff, the drone will land. This logic can all be found inside the `main` method.
+
+> **Note:** The takeoff height is determined by the `take_off_height` parameter configured on the drone. See the [flight controller parameters](https://avular-robotics.github.io/vertex_one_user_documentation/latest/flight_controller/parameters.html) for the default value and how to change it.
 
 ## Usage
 

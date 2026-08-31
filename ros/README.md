@@ -9,10 +9,10 @@ Currently, the following examples are available:
   - [Hello World](src/getting_started/hello_world/README.md)
   - [System Monitor](src/getting_started/system_monitor/README.md)
   - [Frame Convention](src/getting_started/frame_convention/README.md)
+  - [Remote Controller Example](src/getting_started/remote_controller_example/README.md)
 - Advanced
   - [Takeoff and Land Example](src/advanced/take_off_land_example/README.md)
   - [Circle Example](src/advanced/circle_example/README.md)
-  - [Remote Controller Example](src/advanced/remote_controller_example/README.md)
 
 **Environments:**
 

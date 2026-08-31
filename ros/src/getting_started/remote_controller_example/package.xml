@@ -3,7 +3,7 @@
 <package format="3">
   <name>remote_controller_example</name>
   <version>1.0.0</version>
-  <description>Example of how to use the remote controller with the drone via the Jetson.</description>
+  <description>Example of how to display remote controller input using ROS 2.</description>
   <maintainer email="support@avular.com">Joep van Zuijlen</maintainer>
   <license>Avular Confidential</license>
 
@@ -11,7 +11,6 @@
 
   <depend>rclcpp</depend>
   <depend>sensor_msgs</depend>
-  <depend>advanced_common</depend>
 
   <export>
     <build_type>ament_cmake</build_type>

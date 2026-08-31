@@ -7,7 +7,7 @@
 		"dockerfile": "../../docker/sdk.Dockerfile",
 		"context": "../..",
 		"args": {
-            "CREOS_VERSION": "0.7.3"
+            "CREOS_VERSION": "0.8.0"
         }
 	},
 	"customizations": {

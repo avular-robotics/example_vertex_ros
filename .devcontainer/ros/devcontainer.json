@@ -9,7 +9,7 @@
         "context": "../..",
         "args": {
             "USERNAME": "user",
-            "CREOS_VERSION": "0.7.3"
+            "CREOS_VERSION": "0.8.0"
         }
     },
     "workspaceFolder": "/home/user/ws",
