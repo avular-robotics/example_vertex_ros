@@ -20,7 +20,6 @@
 #include <common/logging.hpp>
 #include <common/drone_state.hpp>
 #include <common/remote_controller_interface.hpp>
-#include <common/flight_controller.hpp>
 
 #include "circle_references.hpp"
 
@@ -46,7 +45,6 @@ int main(int argc, char **argv)
     double           speed_mps           = 0.5;
     double           accel_mps2          = 1.0;
     unsigned         update_frequency_hz = 100;
-    unsigned         take_off_delay_s    = 2;
     ControllerType   controller_type     = ControllerType::kHerelink;
     std::string_view host                = "";
 
@@ -64,9 +62,6 @@ int main(int argc, char **argv)
                    "Acceleration of the drone in meters per second squared. Default is 1.0 m/s^2.");
     app.add_option("-f,--frequency", update_frequency_hz,
                    "Update frequency in Hz. Default is 100 Hz.");
-    app.add_option("-d,--delay", take_off_delay_s,
-                   "Delay in seconds before the drone takes off when all take off conditions are "
-                   "met. Default is 2 seconds.");
     app.add_flag_callback(
         "--jeti", [&controller_type]() { controller_type = ControllerType::kJeti; },
         "Use Jeti controller instead of Herelink controller");
@@ -100,22 +95,6 @@ int main(int argc, char **argv)
     std::shared_ptr<IRemoteController> controller = CreateRemoteController(controller_type);
     client.sensors()->subscribeToRemoteController(controller->GetControllerStateCallback());
 
-    // Setup FlightController
-    FlightController flight_controller(*drone_state, take_off_delay_s);
-    flight_controller.RegisterTakeOffTrigger(
-        [&flight_controller, &client]()
-        {
-            try
-            {
-                client.setpoint_control()->sendCommand(
-                    creos_messages::Command{.action = creos_messages::Command::Action::kTakeOff});
-            }
-            catch(const std::exception &e)
-            {
-                std::cerr << "Failed to send takeoff command: " << e.what() << std::endl;
-            }
-        });
-
     bool execution_active = false;
     controller->RegisterActivationButtonCallback(
         [&execution_active]()
@@ -127,27 +106,40 @@ int main(int argc, char **argv)
     CircleReferences circle_references =
         CircleReferences(update_frequency_hz, circle_radius_m, speed_mps, accel_mps2);
 
-    FlightState state = FlightState::kUnknown;
     while(true)
     {
         if(execution_active)
         {
-            state = flight_controller.Run();
-            if(state == FlightState::kFlying)
+            if(!drone_state->IsInFlight())
             {
-                // Publish circle references when the drone is flying
+                // Stop execution immediately if the drone is not airborne when activated
+                spdlog::warn("Stopping execution: drone is not flying. "
+                             "Take off manually before activating the circle example.");
+                execution_active = false;
+                circle_references.Reset(drone_state->GetPosition(), drone_state->GetYaw());
+            }
+            else if(!drone_state->IsInUserControlMode())
+            {
+                // Stop execution when the drone leaves SDK mode (e.g. switch to position mode).
+                // Reset so the next activation restarts from the current position.
+                spdlog::info(
+                    "Stopping execution: control mode changed away from SDK mode. "
+                    "Press activation button to restart the circle from the current position.");
+                execution_active = false;
+                circle_references.Reset(drone_state->GetPosition(), drone_state->GetYaw());
+            }
+            else
+            {
                 creos_messages::StateReference state_reference =
                     circle_references.GetNewStateReference();
                 client.setpoint_control()->publishStateReference(state_reference);
             }
-            else
-            {
-                // Reset the circle references when the drone is not flying
-                circle_references.Reset(drone_state->GetPosition(), drone_state->GetYaw());
-            }
         }
-        // Reset the circle references when the exacution is not active since the drone could be
-        // moving using the remote controller therefore the middle of circle should be updated
+        // Reset the circle references when the execution is not active so that when the execution
+        // is activated again, the drone will start from its current position and heading.
+        // This is important because the drone might have been moved manually or drifted while the
+        // execution was inactive, and we want to ensure that the circle is generated from the
+        // current position and heading of the drone.
         else
         {
             circle_references.Reset(drone_state->GetPosition(), drone_state->GetYaw());

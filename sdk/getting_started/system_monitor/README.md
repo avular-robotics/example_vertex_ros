@@ -9,3 +9,30 @@ This example demonstrates how to use SystemInfo, Diagnostic and SetPointControl 
 ```
 
 This example can be used to observe the system status when running other examples/applications.
+
+## Expected output
+
+On startup, system information is logged once, followed by continuous status updates whenever the battery, robot state, or control source changes:
+
+```
+System monitor example:
+System info:
+  - Name: Vertex One
+  - Hostname: vertex-one-XXXX
+  - Serial: XXXXXXXX
+  - Platform: vertex_one
+  - Components:
+    - creos (Container): 1.2.3
+    ...
+Battery status:
+  - State: Discharging
+  - Voltage: 24.5 V
+  - State of charge: 85%
+  ...
+State: Active - In flight
+Control source: User
+```
+
+> **Note:** `Control source: User` corresponds to **SDK mode** as shown in QGroundControl and in the manual.
+
+State and battery lines are reprinted whenever their values change.

@@ -32,18 +32,12 @@ public:
         frequency_param.description = "Update frequency in Hz. Default is 100 Hz.";
         this->declare_parameter("frequency", 100, frequency_param);
 
-        auto delay_param        = rcl_interfaces::msg::ParameterDescriptor{};
-        delay_param.description = "Delay in seconds before the drone takes off when all take off "
-                                  "conditions are met. Default is 2 seconds.";
-        this->declare_parameter("take_off_delay", 2, delay_param);
-
         auto controller_param = rcl_interfaces::msg::ParameterDescriptor{};
         controller_param.description =
             "Controller type to use: 'herelink' or 'jeti'. Default is 'herelink'.";
         this->declare_parameter("controller", "herelink");
 
         update_frequency_hz_        = this->get_parameter("frequency").as_int();
-        take_off_delay_s            = this->get_parameter("take_off_delay").as_int();
         std::string controller_type = this->get_parameter("controller").as_string();
 
         timer_ = create_wall_timer(std::chrono::milliseconds(1000 / update_frequency_hz_),
@@ -74,17 +68,11 @@ public:
         }
         controller_sub_ = this->create_subscription<sensor_msgs::msg::Joy>(
             "/robot/joy", rclcpp::SensorDataQoS(), controller_->GetControllerStateCallback());
-        controller_->RegisterActivationButtonCallback(
-            [this]()
-            {
-                execution_active_ = !execution_active_;
-                RCLCPP_INFO(this->get_logger(), "Execution active: %s",
-                            execution_active_ ? "true" : "false");
-            });
+        controller_->RegisterActivationButtonCallback([this]()
+                                                      { flight_controller_->RequestTakeOff(); });
 
         // Setup FlightController
-        flight_controller_ =
-            std::make_shared<FlightController>(*drone_state_, take_off_delay_s, this->get_logger());
+        flight_controller_ = std::make_shared<FlightController>(*drone_state_, this->get_logger());
         send_command_client_ =
             this->create_client<creos_sdk_msgs::srv::SendCommand>("/robot/send_command");
         flight_controller_->RegisterTakeOffTrigger(
@@ -107,24 +95,21 @@ public:
     {
         static bool land_command_sent = false;
 
-        if(execution_active_)
+        FlightState state = flight_controller_->UpdateStatus();
+        if(land_command_sent && state == FlightState::kFlying)
         {
-            FlightState state = flight_controller_->Run();
-            if(land_command_sent && state == FlightState::kFlying)
-            {
-            }
-            else if(state == FlightState::kFlying)
-            {
-                RCLCPP_INFO(this->get_logger(), "Sending Land command");
-                auto request    = std::make_shared<creos_sdk_msgs::srv::SendCommand::Request>();
-                request->action = creos_sdk_msgs::srv::SendCommand::Request::LAND;
-                send_command_client_->async_send_request(request);
-                land_command_sent = true;
-            }
-            else if(state == FlightState::kLanding)
-            {
-                land_command_sent = false;
-            }
+        }
+        else if(state == FlightState::kFlying)
+        {
+            RCLCPP_INFO(this->get_logger(), "Sending Land command");
+            auto request    = std::make_shared<creos_sdk_msgs::srv::SendCommand::Request>();
+            request->action = creos_sdk_msgs::srv::SendCommand::Request::LAND;
+            send_command_client_->async_send_request(request);
+            land_command_sent = true;
+        }
+        else if(state == FlightState::kLanding)
+        {
+            land_command_sent = false;
         }
     }
 
@@ -132,9 +117,6 @@ private:
     rclcpp::TimerBase::SharedPtr timer_;
 
     unsigned update_frequency_hz_;
-    unsigned take_off_delay_s;
-
-    bool execution_active_ = false;
 
     std::shared_ptr<DroneState>        drone_state_;
     std::shared_ptr<IRemoteController> controller_;

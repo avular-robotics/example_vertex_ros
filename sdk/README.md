@@ -9,10 +9,10 @@ Currently, the following examples are available:
   - [Hello World](getting_started/hello_world/README.md)
   - [System Monitor](getting_started/system_monitor/README.md)
   - [Frame Convention](getting_started/frame_convention/README.md)
+  - [Remote Controller Example](getting_started/remote_controller_example/README.md)
 - Advanced
   - [Takeoff and Land Example](advanced/take_off_land_example/README.md)
   - [Circle Example](advanced/circle_example/README.md)
-  - [Remote Controller Example](advanced/remote_controller_example/README.md)
   - [Waypoint Example](advanced/waypoint_example/README.md)
 
 **Environments:**
@@ -53,10 +53,8 @@ Build the SDK example application(s):
 *Run in the root of the `~/ws` folder*
 
 ```bash
-mkdir -p build
-cd build
-cmake ..
-cmake --build . --config Debug --target all
+cmake -S . -B build
+cmake --build build
 ```
 
 The SDK example application(s) will be built in the `build/bin` directory.

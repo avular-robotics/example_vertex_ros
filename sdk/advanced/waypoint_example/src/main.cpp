@@ -213,54 +213,70 @@ int main(int argc, char **argv)
     int                         waypoint_index = 0;
     creos_messages::JobStatus   status = {creos_messages::ExecutionStatus::kNotLoaded, {}, {}};
     std::shared_ptr<creos::Job> job    = nullptr;
-    while((status.status != creos_messages::ExecutionStatus::kSucceeded) &&
-          (status.status != creos_messages::ExecutionStatus::kCanceled) &&
-          (status.status != creos_messages::ExecutionStatus::kFailed))
-    {
-        if(execution_active)
-        {
-            switch(job_state)
-            {
-            case JobState::kStartJob:
-            {
-                // Create the job when execution is activated. We create a new job each time
-                // execution is activated, so if you deactivate and reactivate execution, a new job
-                // will be created and started.
-                job =
-                    std::make_shared<creos::Job>(createJobFunc(client, drone_state->GetPosition()));
 
-                // Start the job execution
-                job->start();
-                job_state = JobState::kJobRunning;
-                break;
-            }
-            case JobState::kJobRunning:
+    try
+    {
+        while((status.status != creos_messages::ExecutionStatus::kSucceeded) &&
+              (status.status != creos_messages::ExecutionStatus::kCanceled) &&
+              (status.status != creos_messages::ExecutionStatus::kFailed))
+        {
+            if(execution_active)
             {
-                status = job->getJobStatus();
-                reportJobStatus(status, finished_tasks, waypoint_index);
-                break;
+                switch(job_state)
+                {
+                case JobState::kStartJob:
+                {
+                    // Create the job when execution is activated. We create a new job each time
+                    // execution is activated, so if you deactivate and reactivate execution, a new
+                    // job will be created and started.
+                    job = std::make_shared<creos::Job>(
+                        createJobFunc(client, drone_state->GetPosition()));
+
+                    // Start the job execution
+                    job->start();
+                    job_state = JobState::kJobRunning;
+                    break;
+                }
+                case JobState::kJobRunning:
+                {
+                    status = job->getJobStatus();
+                    reportJobStatus(status, finished_tasks, waypoint_index);
+                    break;
+                }
+                }
             }
+            else
+            {
+                if(job_state == JobState::kJobRunning)
+                {
+                    job->stop();
+                    break;
+                }
             }
+
+            spin(update_frequency_hz);
+        }
+
+        if(status.status == creos_messages::ExecutionStatus::kSucceeded)
+        {
+            std::cout << std::endl;
+            std::cout << "Example completed successfully!" << std::endl;
         }
         else
         {
-            if(job_state == JobState::kJobRunning)
-            {
-                job->stop();
-                break;
-            }
+            std::cout << std::endl;
+            std::cout << "Example did not complete successfully." << std::endl;
         }
-        spin(update_frequency_hz);
     }
-    if(status.status == creos_messages::ExecutionStatus::kSucceeded)
+    catch(const creos::JobException &e)
     {
-        std::cout << std::endl;
-        std::cout << "Example completed successfully!" << std::endl;
+        spdlog::error("Job execution occurred with SDK error: {}", e.what());
+        return 1;
     }
-    else
+    catch(const std::exception &e)
     {
-        std::cout << std::endl;
-        std::cout << "Example did not complete successfully." << std::endl;
+        spdlog::error("Job execution occurred with error: {}", e.what());
+        return 1;
     }
 
     return 0;

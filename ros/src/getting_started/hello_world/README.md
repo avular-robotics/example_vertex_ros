@@ -8,3 +8,13 @@ This example demonstrates the basic usage of the CreOS ROS SDK. The code is writ
 source install/setup.bash
 ros2 run hello_world_example hello_world_example
 ```
+
+## Expected output
+
+The example subscribes to the `/robot/battery` topic and logs the battery state of charge whenever a new message is received:
+
+```
+[hello_world_node]: Battery state of charge: 85.00%
+[hello_world_node]: Battery state of charge: 85.00%
+...
+```

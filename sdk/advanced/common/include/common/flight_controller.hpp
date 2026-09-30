@@ -20,7 +20,7 @@ enum class FlightState
     kUnknown,
     kWaitingForArming,
     kPerformingPreFlightChecks,
-    kWaitingForTakeOff,
+    kReadyForTakeOff,
     kSendingTakeOff,
     kInTakeOff,
     kFlying,
@@ -30,24 +30,23 @@ enum class FlightState
 class FlightController
 {
 public:
-    FlightController(IDroneState &drone_state, unsigned take_off_delay_s);
+    explicit FlightController(IDroneState &drone_state);
     ~FlightController();
 
-    FlightState Run();
+    FlightState UpdateStatus();
     void        RegisterTakeOffTrigger(std::function<void()> trigger_take_off);
+
+    // Edge-triggered: if the drone is not ready at that exact moment the request is ignored so it
+    // can never fire automatically at a later time.
+    void RequestTakeOff();
 
 private:
     FlightState  state_ = FlightState::kUnknown;
     IDroneState &drone_state_;
-
-    unsigned                              take_off_delay_s_;
-    std::chrono::system_clock::time_point delay_start_;
 
     void        setState(FlightState state);
     std::string stateToString(FlightState state);
 
     void                  sendTakeOff();
     std::function<void()> trigger_take_off_;
-    void                  resetTakeOffDelay();
-    bool                  isTakeOffDelayExpired();
 };

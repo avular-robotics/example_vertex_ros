@@ -13,14 +13,11 @@ project(remote_controller_example VERSION 1.0.0 LANGUAGES CXX)
 option(BUILD_TESTS "Build the tests" OFF)
 
 find_package(rclcpp REQUIRED)
-find_package(creos_sdk_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
-find_package(advanced_common REQUIRED)
-find_package(tf2_ros REQUIRED)
 
 # Library
-add_library(${PROJECT_NAME}_lib STATIC src/remote_controller_references.cpp)
-ament_target_dependencies(${PROJECT_NAME}_lib rclcpp creos_sdk_msgs sensor_msgs advanced_common tf2_ros)
+add_library(${PROJECT_NAME}_lib STATIC src/rc_utils.cpp)
+ament_target_dependencies(${PROJECT_NAME}_lib sensor_msgs)
 
 install(
   TARGETS ${PROJECT_NAME}_lib
@@ -35,7 +32,7 @@ install(
 add_executable(${PROJECT_NAME} src/main.cpp)
 
 target_link_libraries(${PROJECT_NAME} ${PROJECT_NAME}_lib)
-ament_target_dependencies(${PROJECT_NAME} rclcpp advanced_common)
+ament_target_dependencies(${PROJECT_NAME} rclcpp sensor_msgs)
 
 if(BUILD_TESTS)
     add_subdirectory(tests)

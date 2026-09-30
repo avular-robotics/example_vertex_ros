@@ -12,7 +12,6 @@ add_executable(${EXAMPLE_NAME} src/main.cpp)
 
 find_package(creos_client REQUIRED)
 find_package(creos_msgs REQUIRED)
-find_package(Eigen3 REQUIRED)
 find_package(spdlog REQUIRED)
 
 add_library(${EXAMPLE_NAME}_lib STATIC)
@@ -25,7 +24,7 @@ target_link_libraries(${EXAMPLE_NAME} PRIVATE creos::client ${EXAMPLE_NAME}_lib 
 target_sources(
     ${EXAMPLE_NAME}_lib
     PRIVATE
-        src/remote_controller_references.cpp
+        src/rc_utils.cpp
 )
 
 if(BUILD_TESTS)

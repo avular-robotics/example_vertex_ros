@@ -16,12 +16,10 @@
 #include <creos_sdk_msgs/msg/state.hpp>
 #include <creos_sdk_msgs/msg/state_reference.hpp>
 #include <creos_sdk_msgs/msg/control_source.hpp>
-#include <creos_sdk_msgs/srv/send_command.hpp>
 
 #include <common/logging.hpp>
 #include <common/drone_state.hpp>
 #include <common/remote_controller_interface.hpp>
-#include <common/flight_controller.hpp>
 
 #include "circle_references.hpp"
 
@@ -47,11 +45,6 @@ public:
         frequency_param.description = "Update frequency in Hz. Default is 100 Hz.";
         this->declare_parameter("frequency", 100, frequency_param);
 
-        auto delay_param        = rcl_interfaces::msg::ParameterDescriptor{};
-        delay_param.description = "Delay in seconds before the drone takes off when all take off "
-                                  "conditions are met. Default is 2 seconds.";
-        this->declare_parameter("take_off_delay", 2, delay_param);
-
         auto controller_param = rcl_interfaces::msg::ParameterDescriptor{};
         controller_param.description =
             "Controller type to use: 'herelink' or 'jeti'. Default is 'herelink'.";
@@ -61,7 +54,6 @@ public:
         speed_mps_                  = this->get_parameter("speed").as_double();
         accel_mps2_                 = this->get_parameter("accel").as_double();
         update_frequency_hz_        = this->get_parameter("frequency").as_int();
-        take_off_delay_s_           = this->get_parameter("take_off_delay").as_int();
         std::string controller_type = this->get_parameter("controller").as_string();
 
         // Check that the speed does not violate the acceleration limits.
@@ -114,27 +106,6 @@ public:
                             execution_active_ ? "true" : "false");
             });
 
-        // Setup FlightController
-        flight_controller_ = std::make_shared<FlightController>(*drone_state_, take_off_delay_s_,
-                                                                this->get_logger());
-        send_command_client_ =
-            this->create_client<creos_sdk_msgs::srv::SendCommand>("/robot/send_command");
-        flight_controller_->RegisterTakeOffTrigger(
-            [this]()
-            {
-                try
-                {
-                    auto request    = std::make_shared<creos_sdk_msgs::srv::SendCommand::Request>();
-                    request->action = creos_sdk_msgs::srv::SendCommand::Request::TAKEOFF;
-                    send_command_client_->async_send_request(request);
-                }
-                catch(const std::exception &e)
-                {
-                    RCLCPP_ERROR(this->get_logger(), "Failed to send takeoff command: %s",
-                                 e.what());
-                }
-            });
-
         // Setup CircleReferences
         circle_references_ = std::make_shared<CircleReferences>(
             this->get_logger(), update_frequency_hz_, circle_radius_m_, speed_mps_, accel_mps2_);
@@ -147,22 +118,37 @@ public:
     {
         if(execution_active_)
         {
-            auto state = flight_controller_->Run();
-            if(state == FlightState::kFlying)
+            if(!drone_state_->IsInFlight())
             {
-                // Publish circle references when the drone is flying
-                creos_sdk_msgs::msg::StateReference state_reference =
-                    circle_references_->GetNewStateReference(this->now());
-                state_reference_pub_->publish(state_reference);
-            }
-            else
-            {
-                // Reset the circle references when the drone is not flying
+                // Stop execution immediately if the drone is not airborne when activated
+                RCLCPP_WARN(this->get_logger(),
+                            "Stopping execution: drone is not flying. "
+                            "Take off manually before activating the circle example.");
+                execution_active_ = false;
                 circle_references_->Reset(drone_state_->GetPosition(), drone_state_->GetYaw());
+                return;
             }
+            if(!drone_state_->IsInUserControlMode())
+            {
+                // Stop execution when the drone leaves SDK mode (e.g. switch to position mode).
+                // Reset so the next activation restarts from the current position.
+                RCLCPP_INFO(
+                    this->get_logger(),
+                    "Stopping execution: control mode changed away from SDK mode. "
+                    "Press activation button to restart the circle from the current position.");
+                execution_active_ = false;
+                circle_references_->Reset(drone_state_->GetPosition(), drone_state_->GetYaw());
+                return;
+            }
+            creos_sdk_msgs::msg::StateReference state_reference =
+                circle_references_->GetNewStateReference(this->now());
+            state_reference_pub_->publish(state_reference);
         }
-        // Reset the circle references when the execution is not active since the drone could be
-        // moving using the remote controller therefore the middle of circle should be updated
+        // Reset the circle references when the execution is not active so that when the execution
+        // is activated again, the drone will start from its current position and heading.
+        // This is important because the drone might have been moved manually or drifted while the
+        // execution was inactive, and we want to ensure that the circle is generated from the
+        // current position and heading of the drone.
         else
         {
             circle_references_->Reset(drone_state_->GetPosition(), drone_state_->GetYaw());
@@ -176,13 +162,11 @@ private:
     double   speed_mps_;
     double   accel_mps2_;
     unsigned update_frequency_hz_;
-    unsigned take_off_delay_s_;
 
     bool execution_active_ = false;
 
     std::shared_ptr<DroneState>        drone_state_;
     std::shared_ptr<IRemoteController> controller_;
-    std::shared_ptr<FlightController>  flight_controller_;
 
     std::shared_ptr<CircleReferences> circle_references_;
 
@@ -194,9 +178,6 @@ private:
 
     // ROS Publishers
     rclcpp::Publisher<creos_sdk_msgs::msg::StateReference>::SharedPtr state_reference_pub_;
-
-    // ROS Clients
-    rclcpp::Client<creos_sdk_msgs::srv::SendCommand>::SharedPtr send_command_client_;
 };
 
 int main(int argc, char **argv)

@@ -7,3 +7,13 @@ This example demonstrates the basic usage of the CreOS SDK. The code is written 
 ```bash
 ./build/bin/hello_world_example
 ```
+
+## Expected output
+
+The example subscribes to battery status messages and prints the battery state of charge to the console whenever a new message is received:
+
+```
+Battery state of charge: 85%
+Battery state of charge: 85%
+...
+```

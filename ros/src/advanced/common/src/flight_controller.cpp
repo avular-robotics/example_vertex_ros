@@ -9,12 +9,9 @@
 
 #include <common/flight_controller.hpp>
 
-FlightController::FlightController(IDroneState   &drone_state,
-                                   unsigned       take_off_delay_s,
-                                   rclcpp::Logger logger)
-    : drone_state_(drone_state), take_off_delay_s_(take_off_delay_s), logger_(logger)
+FlightController::FlightController(IDroneState &drone_state, rclcpp::Logger logger)
+    : drone_state_(drone_state), logger_(logger)
 {
-    resetTakeOffDelay();
 }
 
 FlightController::~FlightController() {}
@@ -39,7 +36,8 @@ void FlightController::setState(FlightState state)
         case FlightState::kPerformingPreFlightChecks:
             RCLCPP_INFO(logger_, "Performing pre-flight checks");
             break;
-        case FlightState::kWaitingForTakeOff:
+        case FlightState::kReadyForTakeOff:
+            RCLCPP_INFO(logger_, "Ready for take-off. Press the activation button to take off!");
             break;
         case FlightState::kSendingTakeOff:
             RCLCPP_INFO(logger_, "Triggering Take-off");
@@ -77,6 +75,21 @@ void FlightController::sendTakeOff()
     }
 }
 
+void FlightController::RequestTakeOff()
+{
+    if(state_ != FlightState::kReadyForTakeOff)
+    {
+        RCLCPP_ERROR(logger_,
+                     "Take-off request ignored: drone is not ready for take-off "
+                     "(current state: %s)",
+                     stateToString(state_).c_str());
+        return;
+    }
+
+    setState(FlightState::kSendingTakeOff);
+    sendTakeOff();
+}
+
 std::string FlightController::stateToString(FlightState state)
 {
     switch(state)
@@ -87,8 +100,8 @@ std::string FlightController::stateToString(FlightState state)
         return "Unknown";
     case FlightState::kWaitingForArming:
         return "WaitingForArming";
-    case FlightState::kWaitingForTakeOff:
-        return "WaitingForTakeOff";
+    case FlightState::kReadyForTakeOff:
+        return "ReadyForTakeOff";
     case FlightState::kSendingTakeOff:
         return "SendingTakeOff";
     case FlightState::kInTakeOff:
@@ -102,45 +115,17 @@ std::string FlightController::stateToString(FlightState state)
     }
 }
 
-void FlightController::resetTakeOffDelay()
+FlightState FlightController::UpdateStatus()
 {
-    delay_start_ = std::chrono::system_clock::now();
-}
-
-bool FlightController::isTakeOffDelayExpired()
-{
-    static std::chrono::system_clock::time_point previous_log_time =
-        std::chrono::system_clock::now() - std::chrono::milliseconds(200);
-
-    auto now       = std::chrono::system_clock::now();
-    auto elapsed_s = std::chrono::duration_cast<std::chrono::seconds>(now - delay_start_);
-
-    // Log the time remaining until take-off every 200 ms
-    auto elapsed_since_last_log =
-        std::chrono::duration_cast<std::chrono::milliseconds>(now - previous_log_time);
-    if(elapsed_since_last_log > std::chrono::milliseconds(200))
-    {
-        previous_log_time = now;
-        RCLCPP_INFO(logger_, "Drone will take off in %ld s",
-                    (take_off_delay_s_ - elapsed_s.count()));
-    }
-
-    return elapsed_s.count() >= take_off_delay_s_;
-}
-
-FlightState FlightController::Run()
-{
-    // If the execution is not activated or when it is not in user control mode, force deactivate
-    // the execution and reset all counters + states.
+    // Continuously track the drone state so that RequestTakeOff() can rely on it always being
+    // up-to-date, regardless of whether the activation button has been pressed yet.
     if(!drone_state_.IsInUserControlMode())
     {
         setState(FlightState::kInActive);
-        resetTakeOffDelay();
     }
     else if(drone_state_.IsDisarmed())
     {
         setState(FlightState::kWaitingForArming);
-        resetTakeOffDelay();
     }
     else if(drone_state_.IsArmed())
     {
@@ -150,15 +135,7 @@ FlightState FlightController::Run()
         }
         else if(drone_state_.IsReadyForTakeOff())
         {
-            if(!isTakeOffDelayExpired())
-            {
-                setState(FlightState::kWaitingForTakeOff);
-            }
-            else
-            {
-                setState(FlightState::kSendingTakeOff);
-                sendTakeOff();
-            }
+            setState(FlightState::kReadyForTakeOff);
         }
         else if(drone_state_.IsInTakeOff())
         {

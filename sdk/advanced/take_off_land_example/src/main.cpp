@@ -41,7 +41,6 @@ int main(int argc, char **argv)
                  "take off and land."};
 
     unsigned       update_frequency_hz = 100;
-    unsigned       take_off_delay_s    = 2;
     ControllerType controller_type     = ControllerType::kHerelink;
     std::string    host                = "";
 
@@ -53,9 +52,6 @@ int main(int argc, char **argv)
                    "environment variables are used or localhost:7200 is used as a fallback.");
     app.add_option("-f,--frequency", update_frequency_hz,
                    "Update frequency in Hz. Default is 100 Hz.");
-    app.add_option("-d,--delay", take_off_delay_s,
-                   "Delay in seconds before the drone takes off when all take off conditions are "
-                   "met. Default is 2 seconds.");
     app.add_flag_callback(
         "--jeti", [&controller_type]() { controller_type = ControllerType::kJeti; },
         "Use Jeti controller instead of Herelink controller");
@@ -77,9 +73,9 @@ int main(int argc, char **argv)
     std::shared_ptr<IRemoteController> controller = CreateRemoteController(controller_type);
     client.sensors()->subscribeToRemoteController(controller->GetControllerStateCallback());
 
-    FlightController flight_controller(*drone_state, take_off_delay_s);
+    FlightController flight_controller(*drone_state);
     flight_controller.RegisterTakeOffTrigger(
-        [&flight_controller, &client]()
+        [&client]()
         {
             try
             {
@@ -92,35 +88,27 @@ int main(int argc, char **argv)
             }
         });
 
-    bool execution_active = false;
-    controller->RegisterActivationButtonCallback(
-        [&execution_active]()
-        {
-            execution_active = !execution_active;
-            spdlog::info("Execution active: {}", execution_active ? "true" : "false");
-        });
+    controller->RegisterActivationButtonCallback([&flight_controller]()
+                                                 { flight_controller.RequestTakeOff(); });
 
     FlightState state             = FlightState::kUnknown;
     bool        land_command_sent = false;
     while(true)
     {
-        if(execution_active)
+        state = flight_controller.UpdateStatus();
+        if(land_command_sent && state == FlightState::kFlying)
         {
-            state = flight_controller.Run();
-            if(land_command_sent && state == FlightState::kFlying)
-            {
-            }
-            else if(state == FlightState::kFlying)
-            {
-                spdlog::info("Sending Land command");
-                client.setpoint_control()->sendCommand(
-                    creos_messages::Command{.action = creos_messages::Command::Action::kLand});
-                land_command_sent = true;
-            }
-            else if(state == FlightState::kLanding)
-            {
-                land_command_sent = false;
-            }
+        }
+        else if(state == FlightState::kFlying)
+        {
+            spdlog::info("Sending Land command");
+            client.setpoint_control()->sendCommand(
+                creos_messages::Command{.action = creos_messages::Command::Action::kLand});
+            land_command_sent = true;
+        }
+        else if(state == FlightState::kLanding)
+        {
+            land_command_sent = false;
         }
         spin(update_frequency_hz);
     }
